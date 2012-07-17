@@ -5,68 +5,52 @@ include_once 'exceptions.logger.class.php';
  * Logger class.
  * Usefull to log notices, warnings, errors or fatal errors into a logfile.
  * @author gehaxelt
- * @version 1.0
+ * @version 1.1
  */
 class Logger {
 	
 	private $logfilehandle=NULL;
 	
-	const NOTICE=1;
-	const WARNING=2;
-	const ERROR=3;
-	const FATAL=4;
+	const NOTICE='[NOTICE]';
+	const WARNING='[!WARNING!]';
+	const ERROR='[!!ERROR!!]';
+	const FATAL='[!!!FATAL!!!]';
 	
 	/**
 	 * Contructor of Logger.
 	 * Opens the new logfile
-	 * @param string $logfile
+	 * @param string $logfile is the path to a logfile
 	 */
 	public function __construct($logfile) {
 		if($this->logfilehandle==NULL)
-			$this->OpenLogFile($logfile);
+			$this->openLogFile($logfile);
 	}
 	/**
 	 * Destructor of Logger
 	 */
 	public function __destruct() {
-		$this->CloseLogFile();
+		$this->closeLogFile();
 	}
 	/**
 	 * Logs the message into the logfile.
-	 * @param string $message
-	 * @param int $messageType
+	 * @param string $message message to write into the logfile
+	 * @param int $messageType (optional) urgency of the messagee. Possible constants are: notice, warning, error, fatal. Default value: warning
 	 * @throws LogFileNotOpenException
 	 * @throws NotAStringException
 	 * @throws NotAIntegerException
 	 * @throws InvalidMessageTypeException
 	 */
-	public function Log($message,$messageType=Logger::WARNING) {
+	public function log($message,$messageType=Logger::WARNING) {
 		if($this->logfilehandle==NULL)
 			throw new LogFileNotOpenException('Logfile is not opened.');
 		
 		if(!is_string($message))
 			throw new NotAStringException('$message is not a string');
 		
-		if(!is_int($messageType))
-			throw new NotAIntegerException('$messageType is not a integer');
+		if($messageType != Logger::NOTICE && $messageType != Logger::WARNING && $messageType != Logger::ERROR && $messageType != Logger::FATAL)
+			throw new InvalidMessageTypeException('Wrong $messagetype given');
 		
-		switch($messageType) {
-			case Logger::NOTICE:
-					$this->writeToLogFile("[".$this->getTime()."][NOTICE] - ".$message);
-				break;
-			case Logger::WARNING:
-					$this->writeToLogFile("[".$this->getTime()."][!WARNING!] - ".$message);
-				break;
-			case Logger::ERROR:
-					$this->writeToLogFile("[".$this->getTime()."][!!ERROR!!] - ".$message);
-				break;
-			case Logger::FATAL:
-					$this->writeToLogFile("[".$this->getTime()."][!!!FATAL!!!] - ".$message);
-				break;
-			default:
-				throw new InvalidMessageTypeException('Wrong $messagetype given');
-		}
-		
+		$this->writeToLogFile("[".$this->getTime()."]".$messageType." - ".$message);
 	}
 	
 	/**
@@ -74,7 +58,9 @@ class Logger {
 	 * @param string $message
 	 */
 	private function writeToLogFile($message) {
+		flock($this->logfilehandle,LOCK_EX);
 		fwrite($this->logfilehandle,$message."\n");
+		flock($this->logfilehandle,LOCK_UN);
 	}
 	
 	/**
@@ -82,14 +68,13 @@ class Logger {
 	 * @return string with the current date
 	 */
 	private function getTime() {
-		$now = time();
 		return date("d.m.Y - H:i:s");
 	}
 	
 	/**
 	 * Closes the current logfile.
 	 */
-	public function CloseLogFile() {
+	public function closeLogFile() {
 		if($this->logfilehandle!=NULL) {
 			fclose($this->logfilehandle);
 			$this->logfilehandle=NULL;
@@ -97,37 +82,50 @@ class Logger {
 	}
 	
 	/**
-	 * Opens a given Logfile and closes the old one before.
-	 * @param string $logfile
+	 * Opens a given logfile and closes the old one before, if another logfile was opened before.
+	 * @param string $logfile is a path to a logfile
 	 * @throws LogFileOpenErrorException
 	 */
-	public function OpenLogFile($logfile) {
-		$this->CloseLogFile();
+	public function openLogFile($logfile) {
 		
-		if(!file_exists($logfile))
-			$this->createLogFile($logfile);
+		$this->closeLogFile(); //close old logfile if opened;
 		
-		try {
-			$this->logfilehandle=fopen($logfile,"a");
-		} catch (Exception $err) {
+		$this->logfilehandle=@fopen($logfile,"a");
+		
+		if(!$this->logfilehandle) 
 			throw new LogFileOpenErrorException('Could not open Logfile in append-mode');
-		}
 	} 
 	
 	/**
-	 * Creates a new Logfile.
-	 * @param string $fileName
-	 * @throws LogFileAlreadyExistsException
-	 * @throws FileCreationErrorException
+	 * Convenience function to wrap logger->log($message,$messagetype);
+	 * @param string $message
 	 */
-	private function createLogFile($fileName) {
-		if(file_exists($fileName))
-			throw new LogFileAlreadyExistsException('Logfile already exists.');
-		try {
-			fclose(fopen($fileName,"w"));
-		} catch (Exception $err) {
-			throw new FileCreationErrorException('Could not create new file $filename');
-		}
+	public function notice($message) {
+		$this->log($message,Logger::NOTICE);
+	}
+	
+	/**
+	 * Convenience function to wrap logger->log($message,$messagetype);
+	 * @param string $message
+	 */
+	public function warn($message) {
+		$this->log($message,Logger::WARNING);
+	}
+	
+	/**
+	 * Convenience function to wrap logger->log($message,$messagetype);
+	 * @param string $message
+	 */
+	public function error($message) {
+		$this->log($message,Logger::ERROR);
+	}
+	
+	/**
+	 * Convenience function to wrap logger->log($message,$messagetype);
+	 * @param string $message
+	 */
+	public function fatal($message) {
+		$this->log($message,Logger::FATAL);
 	}
 }
 ?>
