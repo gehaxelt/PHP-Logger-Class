@@ -131,42 +131,6 @@ namespace gehaxelt\fileLogger {
             if(!$this->fileHandle = fopen($logFile, 'a+')){
                 throw new FileLoggerException('Could not open file handle.');
             }
-        } 
-        
-        /**
-         * Convenience function to wrap FileLogger->log($message, $messagetype);
-         * 
-         * @param string $message
-         */
-        public function notice($message) {
-            $this->log($message, FileLogger::NOTICE);
-        }
-        
-        /**
-         * Convenience function to wrap FileLogger->log($message, $messagetype);
-         * 
-         * @param string $message
-         */
-        public function warn($message) {
-            $this->log($message, FileLogger::WARNING);
-        }
-        
-        /**
-         * Convenience function to wrap FileLogger->log($message, $messagetype);
-         * 
-         * @param string $message
-         */
-        public function error($message) {
-            $this->log($message, FileLogger::ERROR);
-        }
-        
-        /**
-         * Convenience function to wrap FileLogger->log($message, $messagetype);
-         * 
-         * @param string $message
-         */
-        public function fatal($message) {
-            $this->log($message, FileLogger::FATAL);
         }
         
     }
