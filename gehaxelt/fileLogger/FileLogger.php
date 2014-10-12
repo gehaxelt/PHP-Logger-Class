@@ -12,7 +12,6 @@ namespace gehaxelt\fileLogger {
      * Log notices, warnings, errors or fatal errors into a log file.
      * 
      * @author gehaxelt
-     * @version 1.1
      */
     class FileLogger {
         
@@ -41,7 +40,7 @@ namespace gehaxelt\fileLogger {
         const FATAL = '[FATAL]';
         
         /**
-         * Opens the new logfile
+         * Opens the file handle.
          * 
          * @param string $logfile The path to the loggable file.
          */
@@ -105,7 +104,7 @@ namespace gehaxelt\fileLogger {
         }
         
         /**
-         * Closes the current logfile.
+         * Closes the current log file.
          */
         protected function closeLogFile() {
             if($this->fileHandle != NULL) {
