@@ -1,9 +1,17 @@
 <?php
 
+require_once('../gehaxelt/fileLogger/Compatibility.php');
 require_once('../gehaxelt/fileLogger/FileLogger.php');
 
+use gehaxelt\fileLogger\Compatibility;
+use gehaxelt\fileLogger\CompatibilityException;
 use gehaxelt\fileLogger\FileLogger;
-use gehaxelt\fileLogger\FileLoggerException;
+
+try {
+    $compat = Compatibility::check();
+} catch(CompatibilityException $e){
+    die($e->getMessage());
+}
 
 $log = new FileLogger(__DIR__.'/logs/example.log.php');
 
